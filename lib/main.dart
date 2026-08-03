@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Debt Tracker',
+      title: 'Teddy Contador',
       themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         useMaterial3: true,
