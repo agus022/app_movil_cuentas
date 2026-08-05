@@ -6,6 +6,7 @@ import '../models/payment.dart';
 import '../services/debt_service.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/debt_card.dart';
+import 'debt_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -322,19 +323,32 @@ class _HomeScreenState
 
                 return DebtCard(
                   debt: debt,
-                  onEdit: () =>
-                      editDebt(
-                    debt,
-                  ),
-                  onDelete: () =>
-                      deleteDebt(
-                    debt,
-                  ),
-                  onAddPayment:
-                      () =>
-                          addPayment(
-                    debt,
-                  ),
+
+  onEdit: () =>
+      editDebt(debt),
+
+  onDelete: () =>
+      deleteDebt(debt),
+
+  onAddPayment: () =>
+      addPayment(debt),
+
+  onViewDetail: () {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            DebtDetailScreen(
+          debt: debt,
+          onAddPayment: () =>
+              addPayment(debt),
+        ),
+      ),
+    ).then((_) {
+      loadDebts();
+    });
+  },
                 );
               },
             ),
