@@ -21,12 +21,17 @@ class Debt extends HiveObject {
   @HiveField(4)
   DateTime createdAt;
 
+  
+  @HiveField(5)
+  bool isArchived;
+
   Debt({
     required this.id,
     required this.personName,
     required this.totalAmount,
     required this.payments,
     required this.createdAt,
+    this.isArchived = false,
   });
 
   double get paidAmount =>

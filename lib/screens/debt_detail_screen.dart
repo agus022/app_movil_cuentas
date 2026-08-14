@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/debt.dart';
 import '../widgets/debt_chart.dart';
 
-class DebtDetailScreen extends StatelessWidget {
+class DebtDetailScreen extends StatefulWidget {
 
   final Debt debt;
-  final VoidCallback onAddPayment;
+  final Future<void> Function() onAddPayment;
 
   const DebtDetailScreen({
     super.key,
@@ -15,15 +15,20 @@ class DebtDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<DebtDetailScreen> createState() => _DebtDetailScreenState();
+}
+
+class _DebtDetailScreenState extends State<DebtDetailScreen> {
+  @override
   Widget build(BuildContext context) {
 
     final percent =
-        (debt.progress * 100);
+        (widget.debt.progress * 100);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          debt.personName,
+          widget.debt.personName,
         ),
       ),
       body: SingleChildScrollView(
@@ -33,9 +38,9 @@ class DebtDetailScreen extends StatelessWidget {
           children: [
 
             DebtChart(
-              paid: debt.paidAmount,
+              paid: widget.debt.paidAmount,
               pending:
-                  debt.pendingAmount,
+                  widget.debt.pendingAmount,
             ),
 
             const SizedBox(height: 25),
@@ -47,17 +52,17 @@ class DebtDetailScreen extends StatelessWidget {
 
                 _item(
                   "Total",
-                  debt.totalAmount,
+                  widget.debt.totalAmount,
                 ),
 
                 _item(
                   "Pagado",
-                  debt.paidAmount,
+                  widget.debt.paidAmount,
                 ),
 
                 _item(
                   "Debe",
-                  debt.pendingAmount,
+                  widget.debt.pendingAmount,
                 ),
               ],
             ),
@@ -66,7 +71,7 @@ class DebtDetailScreen extends StatelessWidget {
 
             LinearProgressIndicator(
               value:
-                  debt.progress.clamp(
+                  widget.debt.progress.clamp(
                 0,
                 1,
               ),
@@ -88,14 +93,15 @@ class DebtDetailScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child:
-                  ElevatedButton.icon(
-                onPressed:
-                    onAddPayment,
-                icon: const Icon(
-                  Icons.payments,
-                ),
+                ElevatedButton.icon(
+                onPressed: () async {
+                  await widget.onAddPayment();
+                  if (mounted) {
+                    setState(() {});
+                  }
+                },
                 label: const Text(
-                  "Registrar Pago",
+                  "Registrar pago",
                 ),
               ),
             ),
@@ -117,7 +123,7 @@ class DebtDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            ...debt.payments.reversed.map(
+            ...widget.debt.payments.reversed.map(
               (payment) => Card(
                 child: ListTile(
                   leading: const Icon(

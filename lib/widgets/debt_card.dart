@@ -10,6 +10,7 @@ class DebtCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onAddPayment;
   final VoidCallback onViewDetail;
+  final bool isArchived;
 
   const DebtCard({
     super.key,
@@ -17,7 +18,8 @@ class DebtCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onAddPayment,
-    required this.onViewDetail,
+    required this.onViewDetail, 
+    required this.isArchived,
   });
 
   @override
@@ -57,16 +59,34 @@ class DebtCard extends StatelessWidget {
                 ),
 
                 PopupMenuButton(
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      onTap: onEdit,
-                      child: const Text("Editar"),
-                    ),
-                    PopupMenuItem(
-                      onTap: onDelete,
-                      child: const Text("Eliminar"),
-                    ),
-                  ],
+                  itemBuilder: (_) {
+
+                      if (isArchived) {
+                        return [
+                          PopupMenuItem(
+                            onTap: onDelete,
+                            child: const Text(
+                              "Eliminar",
+                            ),
+                          ),
+                        ];
+                      }
+
+                      return [
+                        PopupMenuItem(
+                          onTap: onEdit,
+                          child: const Text(
+                            "Editar",
+                          ),
+                        ),
+                        PopupMenuItem(
+                          onTap: onDelete,
+                          child: const Text(
+                            "Eliminar",
+                          ),
+                        ),
+                      ];
+                    },
                 ),
               ],
             ),
@@ -102,7 +122,7 @@ class DebtCard extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-
+            if (!isArchived)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
