@@ -1,3 +1,4 @@
+import 'package:app_cuentas/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -14,6 +15,7 @@ void main() async {
   Hive.registerAdapter(DebtAdapter());
 
   await Hive.openBox<Debt>('debts');
+  await NotificationService.initialize();
 
   runApp(const MyApp());
 }

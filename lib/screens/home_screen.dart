@@ -1,5 +1,6 @@
 import 'package:app_cuentas/screens/archived_debts_screen.dart';
 import 'package:app_cuentas/screens/completion_screen.dart';
+import 'package:app_cuentas/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,9 +11,6 @@ import '../widgets/dashboard_card.dart';
 import '../widgets/debt_card.dart';
 import 'debt_detail_screen.dart';
 
-
-
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,11 +19,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  
   List<Debt> activeDebts = [];
   List<Debt> archivedDebts = [];
   List<Debt> debts = [];
- 
+
+  int selectedDays = 15;
+  final List<Map<String, dynamic>> reminderOptions = [
+  {"days": 1, "label": "Cada día"},
+  {"days": 3, "label": "Cada 3 días"},
+  {"days": 7, "label": "Cada semana (7 días)"},
+  {"days": 10, "label": "Cada 10 días"},
+  {"days": 15, "label": "Cada quincena (15 días)"},
+  {"days": 30, "label": "Cada mes (30 días)"},
+  {"days": 60, "label": "Cada 2 meses (60 días)"},
+];
   @override
   void initState() {
     super.initState();
@@ -50,23 +57,20 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-double get totalAmount =>
-    activeDebts.fold(
-      0,
-      (sum, d) => sum + d.totalAmount,
-    );
+  double get totalAmount => activeDebts.fold(
+        0,
+        (sum, d) => sum + d.totalAmount,
+      );
 
-double get totalPaid =>
-    activeDebts.fold(
-      0,
-      (sum, d) => sum + d.paidAmount,
-    );
+  double get totalPaid => activeDebts.fold(
+        0,
+        (sum, d) => sum + d.paidAmount,
+      );
 
-double get totalPending =>
-    activeDebts.fold(
-      0,
-      (sum, d) => sum + d.pendingAmount,
-    );
+  double get totalPending => activeDebts.fold(
+        0,
+        (sum, d) => sum + d.pendingAmount,
+      );
   Future<void> addDebt() async {
     final name = TextEditingController();
     final amount = TextEditingController();
@@ -100,6 +104,25 @@ double get totalPending =>
                 ),
               ),
               const SizedBox(height: 20),
+                DropdownButtonFormField<int>(
+                  value: selectedDays,
+                  decoration: const InputDecoration(
+                    labelText: "Recordar cada",
+                  ),
+                  // Mapeamos los elementos usando el valor de "days" y mostrando el "label"
+                  items: reminderOptions.map((option) {
+                    return DropdownMenuItem<int>(
+                      value: option["days"] as int,
+                      child: Text(option["label"] as String),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    // IMPORTANTE: setState asegura que la UI se entere del cambio de selección
+                    setState(() {
+                      selectedDays = value!;
+                    });
+                  },
+                ),
               ElevatedButton(
                 onPressed: () async {
                   final debt = Debt(
@@ -110,9 +133,14 @@ double get totalPending =>
                     ),
                     payments: [],
                     createdAt: DateTime.now(),
+                    reminderDays: selectedDays,
                   );
 
                   await DebtService.add(
+                    debt,
+                  );
+                  await NotificationService
+                      .scheduleReminder(
                     debt,
                   );
 
@@ -194,7 +222,6 @@ double get totalPending =>
   }
 
   Future<void> addPayment(
-    
     Debt debt,
   ) async {
     final controller = TextEditingController();
@@ -226,23 +253,32 @@ double get totalPending =>
                   ),
                 );
 
-
                 if (debt.pendingAmount <= 0) {
                   debt.isArchived = true;
                   completed = true;
                 }
                 await debt.save();
                 loadDebts();
+                await NotificationService
+                    .cancelReminder(
+                  debt.id,
+                );
+
+                if (!debt.isArchived) {
+
+                  await NotificationService
+                      .scheduleReminder(
+                    debt,
+                  );
+                }
 
                 if (completed && mounted) {
-
                   Navigator.pop(context);
 
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          const CompletionScreen(),
+                      builder: (_) => const CompletionScreen(),
                     ),
                   );
 
@@ -353,7 +389,8 @@ double get totalPending =>
                     ).then((_) {
                       loadDebts();
                     });
-                  }, isArchived: false,
+                  },
+                  isArchived: false,
                 );
               },
             ),
